@@ -12,10 +12,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vite": "^4.3.6",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vite": "^4.3.6"
   },
   "dependencies": {
+    "gsap": "^3.11.5",
     "three": "^0.152.2"
   }
 }
