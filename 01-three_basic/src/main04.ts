@@ -4,9 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 /**
  * 目标：
- * 通过clock跟踪时间处理动画
- * 
- * 让物体绝对匀速运动，消除requestAnimationFrame方式相同时间内单位内位移不确定
+ * 控制3d物体移动
+ * 物体的缩放与旋转
  */
 
 const scene = new THREE.Scene();
@@ -19,30 +18,44 @@ const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xfff00 })
 const cube = new THREE.Mesh(cubeGeomtry, cubeMaterial)
 scene.add(cube);
 
+
+// 修改物体的位置
+// cube.position.set(5, 0, 0)
+// 可以直接修改某一个坐标的值
+// cube.position.x = 3
+
+// 缩放 X轴放大3倍，Y轴放大2倍，Z轴放大1倍
+// cube.scale.set(3, 2, 1)
+// 可以直接修改某一个坐标的值
+// cube.scale.x = 5
+
+/**
+ * 旋转
+ * .set ( x : Float, y : Float, z : Float, order : String ) : this
+ * x - 用弧度表示x轴旋转量。
+ * y - 用弧度表示y轴旋转量。
+ * z - 用弧度表示z轴旋转量。
+ * order - (optional) 表示旋转顺序的字符串。
+ * 
+ * 设置该欧拉变换的角度和旋转顺序 order。
+ * 默认值为 'XYZ'，这意味着对象将首先是 绕X轴旋转，然后是Y轴，最后是Z轴。其他可能性包括: 'YZX'， 'ZXY'， 'XZY'， 'YXZ'和'ZYX'。这些必须是大写字母。
+ */
+// cube.rotation.set(Math.PI / 4, 0, 0)
+
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-
-const clock = new THREE.Clock()
-
 const render = () => {
-  // 获取时钟运行的总时长
-  const time = clock.getElapsedTime()
-  // 获取间隔时间
-  // const deltaTime = clock.getDelta()
-  console.log('获取时钟运行的总时长：', time);
-  // console.log('两次获取时间的间隔时间：', deltaTime);
-
-  const t = time % 5
-  cube.position.x = 1 * t
-
-  // cube.position.x += 0.01
+  // 模拟移动 向前移动0.01
+  cube.position.x += 0.01
   if (cube.position.x > 5) {
+    // 大于5的时候重新回到原点
     cube.position.x = 0;
   }
 
+  // 模拟旋转
   cube.rotation.x += 0.01
 
   renderer.render(scene, camera)
