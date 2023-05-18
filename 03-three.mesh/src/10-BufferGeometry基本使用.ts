@@ -73,61 +73,6 @@ for (let i = 0; i < 50; i++) {
 // // 添加到场景中
 // scene.add(mesh)
 
-
-// 创建gui
-// const gui = new dat.GUI();
-
-// 将几何体添加到图形面板里面
-// 改变物体的x轴的最小值为0，最大值为5,步长为0.01，名字叫移动x轴坐标
-// gui
-//   .add(mesh.position, 'x')
-//   .min(0)
-//   .max(5)
-//   .step(0.01)
-//   .name('移动x轴坐标')
-//   .onChange(value => {
-//     console.log('值被修改：', value)
-//   })
-//   .onFinishChange(value => {
-//     console.log('完全停下来：', value)
-//   })
-
-// // 修改物体的颜色 color
-// const params = {
-//   color: '#ffff00',
-//   fn: () => {
-//     // 让物体运动起来
-//     gsap.to(mesh.position, {
-//       x: 5,
-//       // 设置重复的次数，设置无限次循环就是-1
-//       repeat: -1,
-//       // 往返运动
-//       yoyo: true,
-//       // 延时2秒开始运动
-//       // delay: 2,
-//       duration: 5,
-//     })
-//   }
-// }
-// gui
-//   .addColor(params, 'color')
-//   .onChange(value => {
-//     // console.log('改变颜色的值：', value);
-//     // 设置物体材质的颜色
-//     mesh.material.color.set(value);
-//   })
-
-// // 设置物体的显示和隐藏是个选项框
-// gui.add(mesh, 'visible').name('是否显示')
-
-// // 设置按钮点击触发某个事件
-// // gui.add(params, 'fn').name('点击立方体运动')
-
-// // 添加文件夹
-// const folder = gui.addFolder('设置立方体')
-// folder.add(mesh.material, 'wireframe').name('是否变成线框')
-// folder.add(params, 'fn').name('点击立方体运动')
-
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
@@ -135,21 +80,6 @@ document.body.appendChild(renderer.domElement)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
-
-//双击控制屏幕进入全屏，退出全屏
-// window.addEventListener('dblclick', () => {
-//   const fullscreen = document.fullscreenElement
-//   if (!fullscreen) {
-//     // 让画布全屏
-//     renderer.domElement.requestFullscreen()
-//   } else {
-//     // renderer.domElement.exitFullscreen()
-//     // 退出全屏 使用document对象
-//     document.exitFullscreen();
-//   }
-// })
-
-// gsap.to(mesh.rotation, { x: 2 * Math.PI, duration: 5, ease: "power1.inOut" })
 
 const render = () => {
   controls.update()
