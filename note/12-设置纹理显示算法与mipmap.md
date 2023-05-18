@@ -1,4 +1,4 @@
-# 目的：设置纹理显示算法与mipmap
+# 目标：设置纹理显示算法与mipmap
 # 1.导入纹理
 ```ts
 const textureLoder = new THREE.TextureLoader()

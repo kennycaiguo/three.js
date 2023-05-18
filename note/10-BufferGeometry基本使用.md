@@ -1,4 +1,4 @@
-# 目的：简单使用BufferGeometry和打造酷炫三角形
+# 目标：简单使用BufferGeometry和打造酷炫三角形
 
 # 1. 简单使用BufferGeometry 官方案例
 ```ts
