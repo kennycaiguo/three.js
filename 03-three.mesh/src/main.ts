@@ -4,19 +4,41 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // import gsap from 'gsap'
 // import * as dat from 'dat.gui';
 
+// 导入hdr文件数据加载器的RGBELoader 
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
+
 /**
  * 目标：
- * 1.标准网络材质与光照物理效果
- * 标准网络材质是根据PBR物理渲染的
- * 太阳光源对地球来说是点光源制造阴影，然后加环境光决定场景亮度
- * 
- * 
- * 2.置换贴图
- * 3.粗糙度与粗糙度贴图
- * 4.金属贴图
- * 5.法线贴图
- * 
+ * 环境贴图
+ * 场景设置背景
+ * 经纬线映射贴图(墨卡托投影)与HDR
  */
+
+// 加载hdr环境图
+const rgbELoader = new RGBELoader()
+// 因为很大选择进行异步加载
+rgbELoader.loadAsync('textures/hdr/002.hdr').then((texture) => {
+  /**
+   * 设置图像将如何应用到物体（对象）上
+   * 默认值是THREE.UVMapping对象类型， 即UV坐标将被用于纹理映射。
+   * 
+   * CubeReflectionMapping 和 CubeRefractionMapping 
+   * 用于 CubeTexture —— 由6个纹理组合而成，每个纹理都是立方体的一个面。 
+   * 对于CubeTexture来说，CubeReflectionMapping是其默认值。
+   * 
+   * 
+   * EquirectangularReflectionMapping 和 EquirectangularRefractionMapping 
+   * 用于等距圆柱投影的环境贴图，也被叫做经纬线映射贴图。(墨卡托投影)
+   * 等距圆柱投影贴图表示沿着其水平中线360°的视角，以及沿着其垂直轴向180°的视角。
+   * 贴图顶部和底部的边缘分别对应于它所映射的球体的北极和南极。
+   */
+  texture.mapping = THREE.EquirectangularReflectionMapping
+
+  // 场景设置纹理
+  scene.background = texture
+  // 设置环境纹理
+  scene.environment = texture
+})
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -28,82 +50,39 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 10)
 scene.add(camera)
 
-// 导入纹理
-const textureLoder = new THREE.TextureLoader()
-const doorColorTexture = textureLoder.load('./textures/door/eee.jpg')
-const doorAlphaTexture = textureLoder.load('./textures/door/alpha.jpg')
-const doorAoTexture = textureLoder.load('./textures/door/ambientOcclusion.jpg')
-// 导入置换贴图
-const doorHeightTexture = textureLoder.load('./textures/door/height.jpg')
-// 导入粗糙度贴图
-const doorRoughnessTexture = textureLoder.load('./textures/door/roughness.jpg')
-// 导入金属贴图
-const doorMetalnessTexture = textureLoder.load('./textures/door/metalness.jpg')
-// 导入法线贴图
-const doorNormalTexture = textureLoder.load('./textures/door/normal.jpg')
+// 设置cube纹理加载器
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+// cubeTextureLoader.setPath('./textures/environmentMaps/');
+const envMapTexture = cubeTextureLoader.load([
+  "./textures/environmentMaps/1/px.jpg",
+  "./textures/environmentMaps/1/nx.jpg",
+  "./textures/environmentMaps/1/py.jpg",
+  "./textures/environmentMaps/1/ny.jpg",
+  "./textures/environmentMaps/1/pz.jpg",
+  "./textures/environmentMaps/1/nz.jpg",
+])
 
-// 添加物体
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1, 100, 100)
+// 在渲染场景的时候将设置背景 只给场景添加背景
+scene.background = envMapTexture
+// 给所有的物体添加环境贴图，下面的envMap 也可以不用加的
+scene.environment = envMapTexture
+
+
+// 添加物体 -- 球
+const sphereGeometry = new THREE.SphereGeometry(1, 20, 20)
 // 材质
-// 添加后是黑的原因是必须要有灯光
 const material = new THREE.MeshStandardMaterial({
-  color: '#ffff00',
-  map: doorColorTexture,
-  // 设置透明
-  alphaMap: doorAlphaTexture,
-  transparent: true,
-
-  // 第一组uv是颜色贴图，第二组uv控制光照效果
-  aoMap: doorAoTexture,
-  // 环境遮挡效果的强度。默认值为1
-  aoMapIntensity: 1,
-  // opacity: 0.5,
-  //  定义将要渲染哪一面
-  // side: THREE.DoubleSide
-
-  // 设置置换属性
-  displacementMap: doorHeightTexture,
-
-  // 平面设置为200,200 宽度和高度分段太高导致很突兀，需要设置影响程度,这里最大凸出5公分
-  displacementScale: 0.05,
-
-  /**
-   * 改变物体粗糙度
-   * 0.0表示平滑的镜面反射，1.0表示完全漫反射。默认值为1.0。
-   */
-  roughness: 0,
-  roughnessMap: doorRoughnessTexture,
-
-  /**
-   * 改变物体金属度  --- 材质与金属的相似度。
-   * 非金属材质，如木材或石材，使用0.0，金属使用1.0，通常没有中间值。 
-   * 默认值为0.0。0.0到1.0之间的值可用于生锈金属的外观。
-   */
-  metalness: 1,
-  metalnessMap: doorMetalnessTexture,
-
-  /**
-   * RGB值会影响每个像素片段的曲面法线，并更改颜色照亮的方式。
-   * 法线贴图不会改变曲面的实际形状，只会改变光照。
-   * 
-   * 怎么反射这个光，增加凹凸感
-   */
-  normalMap: doorNormalTexture,
+  // 设置金属材质
+  metalness: 0.7,
+  // 设置粗糙度
+  roughness: 0.1,
+  // 设置环境贴图
+  // envMap: envMapTexture
 })
-const cube = new THREE.Mesh(cubeGeometry, material)
-// material.side = THREE.DoubleSide
-scene.add(cube)
+// 合成球体
+const sphere = new THREE.Mesh(sphereGeometry, material);
+scene.add(sphere);
 
-cubeGeometry.setAttribute('uv2', new THREE.BufferAttribute(cubeGeometry.attributes.uv.array, 2))
-
-// 设置透明材质平面
-const planeGeometry = new THREE.PlaneGeometry(1, 1, 200, 200)
-const plane = new THREE.Mesh(planeGeometry, material)
-plane.position.set(1.5, 0, 0)
-scene.add(plane)
-
-// 给平面设置第二组uv  第一组uv控制的是颜色贴图，第二组uv控制的是光照效果，和虚幻4引擎一个意思
-planeGeometry.setAttribute('uv2', new THREE.BufferAttribute(planeGeometry.attributes.uv.array, 2))
 
 /**
  * 追加灯光 
