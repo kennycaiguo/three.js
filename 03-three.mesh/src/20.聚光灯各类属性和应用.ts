@@ -6,7 +6,7 @@ import * as dat from 'dat.gui';
 // import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 
 /**
- * 目标：点光源各类属性和应用
+ * 目标：聚光灯各类属性和应用
  */
 
 const scene = new THREE.Scene();
@@ -40,57 +40,101 @@ plane.rotation.x = -Math.PI / 2
 plane.receiveShadow = true
 scene.add(plane)
 
-// 创建一个小球
-const smallBall = new THREE.Mesh(
-  new THREE.SphereGeometry(0.1, 20, 20),
-  new THREE.MeshBasicMaterial({
-    color: 0xff0000
-  })
-)
-smallBall.position.set(2, 2, 2)
-scene.add(smallBall)
-
 /**
  * 追加灯光 
  */
 // 环境光 四面八方打过来的
 const light = new THREE.AmbientLight(0x404040); // soft white light 柔和的白光
 scene.add(light);
-// 聚光灯（PointLight）--- 一个手电筒
-const pointLight = new THREE.PointLight(0xff0000, 1);
+// 聚光灯（SpotLight）--- 一个手电筒
+const spotLight = new THREE.SpotLight(0xffffff, 0.5);
 // 假如这个值设置等于 Object3D.DEFAULT_UP (0, 1, 0),那么光线将会从上往下照射+ (x，z, y)
-// pointLight.position.set(2, 2, 2);
+spotLight.position.set(5, 5, 5);
 // 设置光照投影阴影
-pointLight.castShadow = true
+spotLight.castShadow = true
+//  光照强度。 缺省值（默认值） 1  修改上面的0.5
+spotLight.intensity = 2
 
 // 设置阴影模糊度
-pointLight.shadow.radius = 20
+spotLight.shadow.radius = 20
 // 但是看起来很模糊，所以需要调节一下分辨率
 // 设置阴影贴图的分辨率 
-pointLight.shadow.mapSize.set(512, 512)
+spotLight.shadow.mapSize.set(4096, 4096)
 
-// 直接把光线加在小球上
-smallBall.add(pointLight)
-// scene.add(pointLight);
-scene.add(smallBall)
+// 设置透视相机的属性 只有近端near，远端far和角度fov
+// spotLight.shadow.camera.near = 0.5
+// spotLight.shadow.camera.far = 500
+
+/**
+ * 设置聚光灯的方向 
+ * 聚光灯的方向是从它的位置到目标位置
+ * 默认的目标位置为原点 (0,0,0)
+ * 
+ * 但是上面设置spotLight.position.set(5, 5, 5) 
+ * 位置则为(5, 5, 5) 
+ */
+spotLight.target = sphere
+
+/**
+ * 设置聚光灯角度
+ * 从聚光灯的位置以弧度表示聚光灯的最大范围
+ * 
+ * 应该不超过 Math.PI/2
+ * 默认值为 Math.PI/3
+ */
+spotLight.angle = Math.PI / 6
+
+/**
+ * 设置最大光源发出光的最大距离
+ * 
+ * 从光源发出光的最大距离，其强度根据光源的距离线性衰减
+ * 
+ * 如果非零，那么光强度将会从最大值当前灯光位置处按照距离线性衰减到0。 缺省值为 0.0
+ */
+spotLight.distance = 0
+
+/**
+ * 设置聚光锥的半影衰减效果
+ * 
+ * 聚光锥的半影衰减百分比。
+ * 在0和1之间的值。默认为0。
+ */
+spotLight.penumbra = 0
+
+
+/**
+ * 设置光照距离的衰减量
+ * 
+ * 光沿着光的距离变暗的量。默认值是2。
+ * 在物理正确呈现的上下，不应该更改默认值。
+ * 
+ * 所以应该先设置 renderer.physicallyCorrectLights = true
+ */
+spotLight.decay = 0
+
+
+scene.add(spotLight);
 
 
 // 想开启一下模拟场景中平行光
-// const spotLighthelper = new THREE.PointLightHelper(pointLight);
+// const spotLighthelper = new THREE.SpotLightHelper(spotLight);
 // scene.add(spotLighthelper);
 
 // 创建gui
 const gui = new dat.GUI();
 gui
-  .add(pointLight.position, 'x')
+  .add(sphere.position, 'x')
   .min(-5)
   .max(5)
   .step(0.1)
   .onChange(() => {
     // spotLighthelper.update()
   })
-gui.add(pointLight, 'distance').min(0).max(5).step(0.001)
-gui.add(pointLight, 'decay').min(0).max(5).step(0.01)
+
+gui.add(spotLight, 'angle').min(0).max(Math.PI / 2).step(0.01)
+gui.add(spotLight, 'distance').min(0).max(10).step(0.01)
+gui.add(spotLight, 'penumbra').min(0).max(1).step(0.01)
+gui.add(spotLight, 'decay').min(0).max(5).step(0.01)
 
 
 
@@ -106,24 +150,7 @@ document.body.appendChild(renderer.domElement)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
-// 设置时钟进行围绕
-const clock = new THREE.Clock()
-/**
- * 1.2246467991473532e-16 
- * 1.22乘以10的-16次方 非常接近精确值0
- * 
- * 1
- */
-console.log(Math.sin(Math.PI), Math.sin(Math.PI / 2));
-
-
 const render = () => {
-  // 小球围绕着大球转
-  const time = clock.getElapsedTime()
-  smallBall.position.x = Math.sin(time) * 3
-  smallBall.position.z = Math.cos(time) * 3
-  smallBall.position.y = 2 + Math.sin(time * 10)
-
   controls.update()
 
   renderer.render(scene, camera)

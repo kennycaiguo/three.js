@@ -6,7 +6,7 @@ import * as dat from 'dat.gui';
 // import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 
 /**
- * 目标：点光源各类属性和应用
+ * 目标：平行光阴影属性与阴影相机原理
  */
 
 const scene = new THREE.Scene();
@@ -31,7 +31,7 @@ sphere.castShadow = true
 scene.add(sphere);
 
 // 创建一个平面
-const planeGeometry = new THREE.PlaneGeometry(50, 50)
+const planeGeometry = new THREE.PlaneGeometry(10, 10)
 const plane = new THREE.Mesh(planeGeometry, material)
 plane.position.set(0, -1, 0)
 // 旋转后 轴变了
@@ -40,90 +40,70 @@ plane.rotation.x = -Math.PI / 2
 plane.receiveShadow = true
 scene.add(plane)
 
-// 创建一个小球
-const smallBall = new THREE.Mesh(
-  new THREE.SphereGeometry(0.1, 20, 20),
-  new THREE.MeshBasicMaterial({
-    color: 0xff0000
-  })
-)
-smallBall.position.set(2, 2, 2)
-scene.add(smallBall)
-
 /**
  * 追加灯光 
  */
 // 环境光 四面八方打过来的
 const light = new THREE.AmbientLight(0x404040); // soft white light 柔和的白光
 scene.add(light);
-// 聚光灯（PointLight）--- 一个手电筒
-const pointLight = new THREE.PointLight(0xff0000, 1);
+// 直线光 = 平行光
+// White directional light at half intensity shining from the top. 
+// 白色的定向光在半强度从顶部照射
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 // 假如这个值设置等于 Object3D.DEFAULT_UP (0, 1, 0),那么光线将会从上往下照射+ (x，z, y)
-// pointLight.position.set(2, 2, 2);
+directionalLight.position.set(10, 10, 10);
 // 设置光照投影阴影
-pointLight.castShadow = true
+directionalLight.castShadow = true
 
-// 设置阴影模糊度
-pointLight.shadow.radius = 20
+// 1.1 设置阴影模糊度
+directionalLight.shadow.radius = 20
 // 但是看起来很模糊，所以需要调节一下分辨率
-// 设置阴影贴图的分辨率 
-pointLight.shadow.mapSize.set(512, 512)
+/**
+ * 1.2 设置阴影贴图的分辨率 
+ * 值必须是2的幂，直到给定设备的 
+ * 默认值为*（512,512）*
+ */
+directionalLight.shadow.mapSize.set(4096, 4096)
 
-// 直接把光线加在小球上
-smallBall.add(pointLight)
-// scene.add(pointLight);
-scene.add(smallBall)
+// 1.3 设置平行光投射相机的属性
+directionalLight.shadow.camera.near = 0.5
+directionalLight.shadow.camera.far = 500
+directionalLight.shadow.camera.top = 5
+directionalLight.shadow.camera.bottom = -5
+directionalLight.shadow.camera.left = -5
+directionalLight.shadow.camera.right = 5
+
+scene.add(directionalLight);
 
 
 // 想开启一下模拟场景中平行光
-// const spotLighthelper = new THREE.PointLightHelper(pointLight);
-// scene.add(spotLighthelper);
+// const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
+// scene.add(helper);
 
 // 创建gui
 const gui = new dat.GUI();
 gui
-  .add(pointLight.position, 'x')
-  .min(-5)
-  .max(5)
+  .add(directionalLight.shadow.camera, 'near')
+  .min(10)
+  .max(20)
   .step(0.1)
   .onChange(() => {
-    // spotLighthelper.update()
+    // 更新摄像机的投影矩阵
+    directionalLight.shadow.camera.updateProjectionMatrix()
   })
-gui.add(pointLight, 'distance').min(0).max(5).step(0.001)
-gui.add(pointLight, 'decay').min(0).max(5).step(0.01)
-
 
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 // 开启场景中的阴影贴图
 renderer.shadowMap.enabled = true
-// 聚光灯 沿着光照距离的衰减量-需要设置物理上的光照
-renderer.physicallyCorrectLights = true
 
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
-// 设置时钟进行围绕
-const clock = new THREE.Clock()
-/**
- * 1.2246467991473532e-16 
- * 1.22乘以10的-16次方 非常接近精确值0
- * 
- * 1
- */
-console.log(Math.sin(Math.PI), Math.sin(Math.PI / 2));
-
-
 const render = () => {
-  // 小球围绕着大球转
-  const time = clock.getElapsedTime()
-  smallBall.position.x = Math.sin(time) * 3
-  smallBall.position.z = Math.cos(time) * 3
-  smallBall.position.y = 2 + Math.sin(time * 10)
-
   controls.update()
 
   renderer.render(scene, camera)
