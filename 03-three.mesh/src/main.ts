@@ -56,7 +56,7 @@ scene.add(smallBall)
 // 环境光 四面八方打过来的
 const light = new THREE.AmbientLight(0x404040); // soft white light 柔和的白光
 scene.add(light);
-// 聚光灯（PointLight）--- 一个手电筒
+// 点光源（PointLight）--- 一个手电筒
 const pointLight = new THREE.PointLight(0xff0000, 1);
 // 假如这个值设置等于 Object3D.DEFAULT_UP (0, 1, 0),那么光线将会从上往下照射+ (x，z, y)
 // pointLight.position.set(2, 2, 2);
@@ -99,7 +99,14 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 // 开启场景中的阴影贴图
 renderer.shadowMap.enabled = true
 // 聚光灯 沿着光照距离的衰减量-需要设置物理上的光照
-renderer.physicallyCorrectLights = true
+// renderer.physicallyCorrectLights = true
+/**
+ * waring：
+ * three.module.js:29909 THREE.WebGLRenderer: 
+ * the property .physicallyCorrectLights has been removed. 
+ * Set renderer.useLegacyLights instead.
+ */
+renderer.useLegacyLights = true
 
 document.body.appendChild(renderer.domElement)
 

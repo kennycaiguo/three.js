@@ -66,7 +66,7 @@ spotLight.shadow.mapSize.set(4096, 4096)
 // spotLight.shadow.camera.far = 500
 
 /**
- * 设置聚光灯的方向 
+ * 设置聚光灯的目标 
  * 聚光灯的方向是从它的位置到目标位置
  * 默认的目标位置为原点 (0,0,0)
  * 
@@ -143,7 +143,14 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 // 开启场景中的阴影贴图
 renderer.shadowMap.enabled = true
 // 聚光灯 沿着光照距离的衰减量-需要设置物理上的光照
-renderer.physicallyCorrectLights = true
+// renderer.physicallyCorrectLights = true
+/**
+ * waring：
+ * three.module.js:29909 THREE.WebGLRenderer: 
+ * the property .physicallyCorrectLights has been removed. 
+ * Set renderer.useLegacyLights instead.
+ */
+renderer.useLegacyLights = true
 
 document.body.appendChild(renderer.domElement)
 

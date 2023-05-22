@@ -65,7 +65,7 @@ directionalLight.shadow.radius = 20
  */
 directionalLight.shadow.mapSize.set(4096, 4096)
 
-// 1.3 设置平行光投射相机的属性
+// 1.3 设置平行光投射相机的属性(正交相机)
 directionalLight.shadow.camera.near = 0.5
 directionalLight.shadow.camera.far = 500
 directionalLight.shadow.camera.top = 5
